@@ -48,10 +48,21 @@ fn main() -> windows::Result<()> {
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
         match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+            Event::WindowEvent { event, window_id } if window_id == window.id() => match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::Resized(new_size) => unsafe {
+                            SetWindowPos(
+                                xaml_island_hwnd,
+                                HWND::NULL,
+                                0,
+                                0,
+                                new_size.width as _,
+                                new_size.height as _,
+                                SWP_SHOWWINDOW,
+                            );
+                },
+                    _ => (),
+            },
             _ => (),
         }
     });
