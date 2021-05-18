@@ -5,10 +5,12 @@ mod bindings {
 }
 use {
     bindings::Windows::{
-        Win32::UI::WindowsAndMessaging::{
-            SetWindowPos, HWND, SWP_SHOWWINDOW,
+        Win32::UI::WindowsAndMessaging::{SetWindowPos, HWND, SWP_SHOWWINDOW},
+        UI::Xaml::{
+            Controls::{Button, Grid, TextBlock},
+            HorizontalAlignment,
+            Hosting::DesktopWindowXamlSource,
         },
-        UI::Xaml::{Hosting::DesktopWindowXamlSource, Controls::Button},
     },
     windows::{Abi, Guid, Interface, IntoParam, RawPtr, HRESULT},
     winit::{
@@ -41,27 +43,33 @@ fn main() -> windows::Result<()> {
         );
     }
 
+    let grid = Grid::new()?;
     let button = Button::new()?;
+    let text = TextBlock::new()?;
+    text.SetText("blah")?;
+    button.SetContent(&text)?;
+    button.SetHorizontalAlignment(HorizontalAlignment::Center)?;
+    grid.Children()?.Append(&button)?;
 
-    desktop_source.SetContent(&button)?;
+    desktop_source.SetContent(&grid)?;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;
         match event {
             Event::WindowEvent { event, window_id } if window_id == window.id() => match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                 WindowEvent::Resized(new_size) => unsafe {
-                            SetWindowPos(
-                                xaml_island_hwnd,
-                                HWND::NULL,
-                                0,
-                                0,
-                                new_size.width as _,
-                                new_size.height as _,
-                                SWP_SHOWWINDOW,
-                            );
+                    SetWindowPos(
+                        xaml_island_hwnd,
+                        HWND::NULL,
+                        0,
+                        0,
+                        new_size.width as _,
+                        new_size.height as _,
+                        SWP_SHOWWINDOW,
+                    );
                 },
-                    _ => (),
+                _ => (),
             },
             _ => (),
         }
