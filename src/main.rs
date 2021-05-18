@@ -17,8 +17,6 @@ use {
 };
 
 fn main() -> windows::Result<()> {
-    windows::initialize_sta()?;
-
     let desktop_source = DesktopWindowXamlSource::new()?;
     let interop: IDesktopWindowXamlSourceNative = desktop_source.cast()?;
 
