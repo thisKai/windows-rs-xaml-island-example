@@ -89,6 +89,7 @@ pub struct IDesktopWindowXamlSourceNative_abi(
     pub unsafe extern "system" fn(RawPtr, *mut HWND) -> HRESULT,
 );
 
+#[allow(non_snake_case)]
 impl IDesktopWindowXamlSourceNative {
     pub fn AttachToWindow<'a>(&self, wnd: impl IntoParam<'a, HWND>) -> windows::Result<()> {
         unsafe { (self.vtable().3)(self.abi(), wnd.into_param().abi()) }.ok()
