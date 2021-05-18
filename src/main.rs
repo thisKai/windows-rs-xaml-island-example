@@ -1,8 +1,3 @@
-use winit::platform::windows::WindowExtWindows;
-
-mod bindings {
-    windows::include_bindings!();
-}
 use {
     bindings::Windows::{
         Win32::UI::WindowsAndMessaging::{SetWindowPos, HWND, SWP_SHOWWINDOW},
@@ -16,6 +11,7 @@ use {
     winit::{
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
+        platform::windows::WindowExtWindows,
         window::WindowBuilder,
     },
 };

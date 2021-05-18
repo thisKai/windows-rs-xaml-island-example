@@ -1,14 +1,11 @@
 [package]
-name = "rust-xaml"
+name = "bindings"
 version = "0.1.0"
 authors = ["kai <thiskaiguy@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bindings = { path = "bindings" }
 windows = "0.10"
-winit = "0.25"
 
 [build-dependencies]
 windows = "0.10"
-embed-resource = "1"
