@@ -5,6 +5,7 @@ use {
             Controls::{Button, Grid, TextBlock},
             HorizontalAlignment,
             Hosting::DesktopWindowXamlSource,
+            RoutedEventHandler,
         },
     },
     windows::{Abi, Guid, Interface, IntoParam, RawPtr, HRESULT},
@@ -43,6 +44,10 @@ fn main() -> windows::Result<()> {
     text.SetText("blah")?;
     button.SetContent(&text)?;
     button.SetHorizontalAlignment(HorizontalAlignment::Center)?;
+    button.Click(RoutedEventHandler::new(|sender, event| {
+        println!("Click");
+        Ok(())
+    }))?;
     grid.Children()?.Append(&button)?;
 
     desktop_source.SetContent(&grid)?;
