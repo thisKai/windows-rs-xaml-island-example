@@ -10,5 +10,4 @@ windows = "0.10"
 winit = "0.25"
 
 [build-dependencies]
-windows = "0.10"
 embed-resource = "1"
