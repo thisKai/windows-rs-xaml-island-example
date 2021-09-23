@@ -1,6 +1,10 @@
 use {
     bindings::Windows::{
-        Win32::UI::WindowsAndMessaging::{SetWindowPos, HWND, SWP_SHOWWINDOW},
+        Win32::{
+            Foundation::HWND,
+            System::WinRT::IDesktopWindowXamlSourceNative,
+            UI::WindowsAndMessaging::{SetWindowPos, SWP_SHOWWINDOW},
+        },
         UI::Xaml::{
             Controls::{Button, Grid, TextBlock},
             HorizontalAlignment,
@@ -8,7 +12,7 @@ use {
             RoutedEventHandler, UIElement,
         },
     },
-    windows::{Abi, Guid, Interface, IntoParam, RawPtr, HRESULT},
+    windows::{Interface, IntoParam},
     winit::{
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
@@ -59,8 +63,10 @@ impl XamlIsland {
     pub fn attached(window: &Window) -> windows::Result<Self> {
         let source = DesktopWindowXamlSource::new()?;
         let interop: IDesktopWindowXamlSourceNative = source.cast()?;
-        interop.AttachToWindow(HWND(window.hwnd() as _))?;
-        let hwnd = interop.GetWindowHandle()?;
+        unsafe {
+            interop.AttachToWindow(HWND(window.hwnd() as _))?;
+        }
+        let hwnd = unsafe { interop.get_WindowHandle() }?;
         let size = window.inner_size();
 
         let island = XamlIsland { hwnd, source };
@@ -69,41 +75,19 @@ impl XamlIsland {
         Ok(island)
     }
     pub fn resize(&self, width: i32, height: i32) {
-        unsafe { SetWindowPos(self.hwnd, HWND::NULL, 0, 0, width, height, SWP_SHOWWINDOW) };
+        unsafe {
+            SetWindowPos(
+                self.hwnd,
+                HWND::default(),
+                0,
+                0,
+                width,
+                height,
+                SWP_SHOWWINDOW,
+            )
+        };
     }
     pub fn set_content<'a>(&self, value: impl IntoParam<'a, UIElement>) -> windows::Result<()> {
         self.source.SetContent(value)
-    }
-}
-
-#[repr(transparent)]
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct IDesktopWindowXamlSourceNative(::windows::IUnknown);
-unsafe impl ::windows::Interface for IDesktopWindowXamlSourceNative {
-    type Vtable = IDesktopWindowXamlSourceNative_abi;
-    const IID: ::windows::Guid = ::windows::Guid::from_values(
-        0x3cbcf1bf,
-        0x2f76,
-        0x4e9c,
-        [0x96, 0xab, 0xe8, 0x4b, 0x37, 0x97, 0x25, 0x54],
-    );
-}
-#[repr(C)]
-pub struct IDesktopWindowXamlSourceNative_abi(
-    pub unsafe extern "system" fn(this: RawPtr, iid: Guid, interface: *mut RawPtr) -> HRESULT,
-    pub unsafe extern "system" fn(this: RawPtr) -> u32,
-    pub unsafe extern "system" fn(this: RawPtr) -> u32,
-    pub unsafe extern "system" fn(RawPtr, HWND) -> HRESULT,
-    pub unsafe extern "system" fn(RawPtr, *mut HWND) -> HRESULT,
-);
-
-#[allow(non_snake_case)]
-impl IDesktopWindowXamlSourceNative {
-    pub fn AttachToWindow<'a>(&self, wnd: impl IntoParam<'a, HWND>) -> windows::Result<()> {
-        unsafe { (self.vtable().3)(self.abi(), wnd.into_param().abi()) }.ok()
-    }
-    pub fn GetWindowHandle(&self) -> windows::Result<HWND> {
-        let mut result = HWND::NULL;
-        unsafe { (self.vtable().4)(self.abi(), &mut result).from_abi(result) }
     }
 }
