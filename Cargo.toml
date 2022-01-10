@@ -5,9 +5,21 @@ authors = ["kai <thiskaiguy@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bindings = { path = "bindings" }
-windows = "0.20"
 winit = "0.25"
+
+[dependencies.windows]
+version = "0.29"
+features = [
+    "std",
+    "alloc",
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_WinRT_Xaml",
+    "Foundation_Collections",
+    "UI_Xaml_Hosting",
+    "UI_Xaml_Controls",
+    "UI_Xaml_Controls_Primitives",
+]
 
 [build-dependencies]
 embed-resource = "1"

@@ -1,18 +1,18 @@
 use {
-    bindings::Windows::{
+    windows::{
+        core::{Interface, IntoParam, Result},
         Win32::{
             Foundation::HWND,
-            System::WinRT::IDesktopWindowXamlSourceNative,
+            System::WinRT::Xaml::IDesktopWindowXamlSourceNative,
             UI::WindowsAndMessaging::{SetWindowPos, SWP_SHOWWINDOW},
         },
         UI::Xaml::{
-            Controls::{Button, Grid, TextBlock},
-            HorizontalAlignment,
+            Controls::{Button, ContentControl, Grid, Panel, Primitives::ButtonBase, TextBlock},
+            FrameworkElement, HorizontalAlignment,
             Hosting::DesktopWindowXamlSource,
             RoutedEventHandler, UIElement,
         },
     },
-    windows::{Interface, IntoParam},
     winit::{
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
@@ -21,7 +21,7 @@ use {
     },
 };
 
-fn main() -> windows::Result<()> {
+fn main() -> Result<()> {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let island = XamlIsland::attached(&window)?;
@@ -30,13 +30,17 @@ fn main() -> windows::Result<()> {
     let button = Button::new()?;
     let text = TextBlock::new()?;
     text.SetText("blah")?;
-    button.SetContent(&text)?;
-    button.SetHorizontalAlignment(HorizontalAlignment::Center)?;
-    button.Click(RoutedEventHandler::new(|sender, event| {
-        println!("Click");
-        Ok(())
-    }))?;
-    grid.Children()?.Append(&button)?;
+    button.cast::<ContentControl>()?.SetContent(&text)?;
+    button
+        .cast::<FrameworkElement>()?
+        .SetHorizontalAlignment(HorizontalAlignment::Center)?;
+    button
+        .cast::<ButtonBase>()?
+        .Click(RoutedEventHandler::new(|sender, event| {
+            println!("Click");
+            Ok(())
+        }))?;
+    grid.cast::<Panel>()?.Children()?.Append(&button)?;
 
     island.set_content(&grid)?;
 
@@ -60,13 +64,13 @@ pub struct XamlIsland {
     source: DesktopWindowXamlSource,
 }
 impl XamlIsland {
-    pub fn attached(window: &Window) -> windows::Result<Self> {
+    pub fn attached(window: &Window) -> Result<Self> {
         let source = DesktopWindowXamlSource::new()?;
         let interop: IDesktopWindowXamlSourceNative = source.cast()?;
         unsafe {
-            interop.AttachToWindow(HWND(window.hwnd() as _))?;
+            interop.AttachToWindow(window.hwnd() as HWND)?;
         }
-        let hwnd = unsafe { interop.get_WindowHandle() }?;
+        let hwnd = unsafe { interop.WindowHandle() }?;
         let size = window.inner_size();
 
         let island = XamlIsland { hwnd, source };
@@ -87,7 +91,7 @@ impl XamlIsland {
             )
         };
     }
-    pub fn set_content<'a>(&self, value: impl IntoParam<'a, UIElement>) -> windows::Result<()> {
+    pub fn set_content<'a>(&self, value: impl IntoParam<'a, UIElement>) -> Result<()> {
         self.source.SetContent(value)
     }
 }
