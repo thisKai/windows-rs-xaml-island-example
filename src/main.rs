@@ -68,7 +68,7 @@ impl XamlIsland {
         let source = DesktopWindowXamlSource::new()?;
         let interop: IDesktopWindowXamlSourceNative = source.cast()?;
         unsafe {
-            interop.AttachToWindow(window.hwnd() as HWND)?;
+            interop.AttachToWindow(HWND(window.hwnd() as _))?;
         }
         let hwnd = unsafe { interop.WindowHandle() }?;
         let size = window.inner_size();
